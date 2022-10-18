@@ -1,0 +1,27 @@
+<launch>
+  <!-- for rosbag2 play -->
+  <arg name="rosbag_dir_name" default="$(find-pkg-share test_pkg)/resource/rosbag2_2022_10_18-15_32_02" />
+  <!-- for laserscan_to_pointcloud -->
+  <arg name="target_frame_id" default="base_scan" />
+  <arg name="pub_topic_hokuyo_scan" default="scan" />
+  <arg name="pub_topic_hokuyo_points" default="points" />
+  <!-- for rviz2 -->
+  <arg name="rviz_config_file" default="$(find-pkg-share test_pkg)/resource/fortest.rviz" />
+
+  <set_parameter name="use_sim_time" value="true"/>
+
+  <!-- 1. exec rosbag2 play -->
+  <executable cmd="ros2 bag play $(var rosbag_dir_name) -l" name="ros2bag-cli" output="screen"/>
+
+  <!-- 2. exec laserscan_to_pointcloud -->
+  <node pkg="pointcloud_to_laserscan" exec="laserscan_to_pointcloud_node"
+        name="scan_to_points">
+    <param name="target_frame" value="$(var target_frame_id)" />
+    <remap from="scan_in" to="$(var pub_topic_hokuyo_scan)" />
+    <remap from="cloud" to="$(var pub_topic_hokuyo_points)" />
+  </node>
+
+  <!-- 3. exec rviz2 -->
+  <executable cmd="ros2 run rviz2 rviz2 -d $(var rviz_config_file)" name="rviz2" output="screen"/>
+
+</launch>
